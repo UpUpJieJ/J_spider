@@ -9,7 +9,6 @@ from bald_spider.utils.project import get_settings
 
 async def run():
     settings = get_settings()
-    # print(settings)
     baidu_spider = BaiduSpider()
     engine = Engine(settings)
     await engine.start_spider(baidu_spider)

@@ -3,7 +3,8 @@
 # @Date  :  2025/05/11
 from bald_spider.settings.setting_manager import SettingsManager
 
+
 def get_settings(settings='settings'):
-    _settings = SettingsManager()
+    _settings = SettingsManager({'1':2})
     _settings.set_setting(settings)
     return _settings

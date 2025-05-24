@@ -2,10 +2,15 @@
 # @Author: Ji jie
 # @Date  :  2025/05/11
 from importlib import import_module
-class SettingsManager:
-    def __init__(self):
-        self.attributes={}
+from collections.abc import MutableMapping
+from bald_spider.settings import default_settings
 
+
+class SettingsManager(MutableMapping):
+    def __init__(self,values=None):
+        self.attributes={}
+        self.set_setting(default_settings)
+        self.update_values(values)
     def __getitem__(self, item):
         if item not in self:
             return None
@@ -19,6 +24,12 @@ class SettingsManager:
 
     def __delitem__(self, key):
         del self.attributes[key]
+
+    def __iter__(self):
+        return iter(self.attributes)
+
+    def __len__(self):
+        return len(self.attributes)
 
     def set(self, key, value):
         self.attributes[key] = value
@@ -60,6 +71,15 @@ class SettingsManager:
     def __str__(self):
         return f'<Settings values: {self.attributes}>'
 
-    __repr = __str__
+    __repr__ = __str__
+
+    def update_values(self,values):
+        if values is not None:
+            for key,value in values.items():
+                self.set(key,value)
 
 
+if __name__ == '__main__':
+    settings = SettingsManager()
+    settings['abc'] = 666
+    print(settings.items())
