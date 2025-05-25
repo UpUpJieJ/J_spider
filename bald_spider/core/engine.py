@@ -14,13 +14,14 @@ from bald_spider.utils.spider import transform
 from bald_spider.task_manager import TaskManager
 class Engine:
 
-    def __init__(self,settings):
+    def __init__(self, crawler):
+        self.crawler = crawler
+        self.settings = crawler.settings
         self.downloader: Optional[Downloader] = None
         self.scheduler: Optional[Scheduler] = None
         self.spider: Optional[Spider] = None
         self.start_requests: Optional[Generator] = None
-        self.task_manager: TaskManager = TaskManager(settings.getint('CONCURRENCY'))
-        print(settings.getbool('FLAG'))
+        self.task_manager: TaskManager = TaskManager(self.settings.getint('CONCURRENCY'))
         self.running = False
 
     # 接受一个spider对象并且启动实例

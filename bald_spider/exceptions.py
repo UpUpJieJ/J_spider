@@ -4,5 +4,11 @@
 class TransformTypeError(TypeError):
     pass
 
+
 class OutputTypeError(Exception):
+    pass
+
+
+
+class SpiderTypeError(TypeError):
     pass

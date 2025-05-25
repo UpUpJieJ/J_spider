@@ -1,6 +1,7 @@
 # encoding: utf-8
 # @Author: Ji jie
 # @Date  :  2025/05/11
+from copy import deepcopy
 from importlib import import_module
 from collections.abc import MutableMapping
 from bald_spider.settings import default_settings
@@ -78,6 +79,8 @@ class SettingsManager(MutableMapping):
             for key,value in values.items():
                 self.set(key,value)
 
+    def copy(self):
+        return deepcopy(self)
 
 if __name__ == '__main__':
     settings = SettingsManager()

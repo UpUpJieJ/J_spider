@@ -1,12 +1,16 @@
 # encoding: utf-8
 # @Author: Ji jie
 # @Date  :  2024/06/22
+import time
+
 from bald_spider import Request
 from bald_spider.spider import Spider
 # 这个类需要继承于基类
 class BaiduSpider(Spider):
 
     start_urls = ["https://www.baidu.com", "https://www.douban.com"]
+
+    custom_settings = {'CONCURRENCY': 10}
 
     # 重写基类的回调函数 使之可以处理多次请求
     async def parse(self, response):

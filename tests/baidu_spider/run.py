@@ -2,15 +2,26 @@
 # @Author: Ji jie
 # @Date  :  2024/06/22
 import asyncio
-from bald_spider.core.engine import Engine
-from baidu import BaiduSpider
+import time
+
+from bald_spider.crawler import CrawlProcess
+from tests.baidu_spider.spiders.baidu import BaiduSpider
+from tests.baidu_spider.spiders.baidu2 import BaiduSpider2
 from bald_spider.utils.project import get_settings
 
 
 async def run():
     settings = get_settings()
-    baidu_spider = BaiduSpider()
-    engine = Engine(settings)
-    await engine.start_spider(baidu_spider)
+    process = CrawlProcess(settings)
+    await process.crawl(BaiduSpider)
+    await process.crawl(BaiduSpider2)
+    await process.start()
 
+
+
+    # baidu_spider = BaiduSpider()
+    # engine = Engine(settings)
+    # await engine.start_spider(baidu_spider)
+s = time.time()
 asyncio.run(run())
+print(time.time() - s)
