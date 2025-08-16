@@ -5,6 +5,8 @@ import time
 
 from bald_spider import Request
 from bald_spider.spider import Spider
+from items import BaiduItem
+
 # 这个类需要继承于基类
 class BaiduSpider(Spider):
 
@@ -14,21 +16,26 @@ class BaiduSpider(Spider):
 
     # 重写基类的回调函数 使之可以处理多次请求
     async def parse(self, response):
-        print('>>>>>', response)
+        # print('>>>>>', response)
         for i in range(10):
             url = "https://www.baidu.com"
             request = Request(url=url,callback=self.page_parse)
             yield request
 
     def page_parse(self, response):
-        print('page_parse', response)
+        # print('page_parse', response)
         for i in range(10):
             url = "https://www.baidu.com"
             request = Request(url=url,callback=self.parse_detail)
             yield request
 
     def parse_detail(self, response):
-        print('parse_detail', response)
+        # reponse 从download传来的
+        # print('parse_detail', response)
+        item = BaiduItem()
+        item['title'] = "baidu"
+        item['price'] = 10
+        yield item
     # 接收download的结果
 
 

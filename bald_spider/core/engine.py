@@ -4,8 +4,9 @@
 import asyncio
 from typing import Optional, Generator, Callable
 
-from bald_spider import Request
+from bald_spider import Request, Item
 from bald_spider.core.downloader import Downloader
+from bald_spider.core.processor import Processor
 from bald_spider.core.scheduler import Scheduler
 from bald_spider.exceptions import TransformTypeError, OutputTypeError
 from bald_spider.spider import Spider
@@ -19,6 +20,7 @@ class Engine:
         self.settings = crawler.settings
         self.downloader: Optional[Downloader] = None
         self.scheduler: Optional[Scheduler] = None
+        self.processor: Optional[Processor] = None
         self.spider: Optional[Spider] = None
         self.start_requests: Optional[Generator] = None
         self.task_manager: TaskManager = TaskManager(self.settings.getint('CONCURRENCY'))
@@ -32,6 +34,7 @@ class Engine:
         if hasattr(self.scheduler, "open"):
             self.scheduler.open()
         self.downloader = Downloader()
+        self.processor = Processor(self.crawler)
         self.start_requests = iter(spider.start_requests())
         # await self.crawl()
         await self._open_spider()
@@ -106,13 +109,12 @@ class Engine:
     async def _handle_spider_outputs(self, outputs):
         async for spider_output in outputs:
             # 处理是请求还是数据
-            if isinstance(spider_output, Request):
-                await self.enqueue_requests(spider_output)
-            # todo 处理是数据
+            if isinstance(spider_output, (Request, Item)):
+                await self.processor.enqueue(spider_output)
             else:
                 raise OutputTypeError(f"Spider {self.spider } must return `Request` or `item`, but get {type(spider_output)}")
 
     async def _exit(self):
-        if self.scheduler.idle() and self.downloader.idle() and self.task_manager.all_done():
+        if self.scheduler.idle() and self.downloader.idle() and self.task_manager.all_done() and self.processor.idle():
             return True
         return False
