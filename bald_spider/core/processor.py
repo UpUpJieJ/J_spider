@@ -12,6 +12,7 @@ class Processor:
     def __init__(self, crawler):
         self.queue: Queue = Queue()
         self.crawler = crawler
+
     async def process(self):
         while not self.idle():
             output = await self.queue.get()
@@ -33,4 +34,3 @@ class Processor:
 
     def __len__(self):
         return self.queue.qsize()
-

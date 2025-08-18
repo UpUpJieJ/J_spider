@@ -5,15 +5,22 @@ from copy import deepcopy
 from pprint import pformat
 from collections.abc import MutableMapping
 
+from bald_spider.exceptions import ItemInitError
 from bald_spider.items import Field, ItemMeta
 
 
 class Item(MutableMapping, metaclass=ItemMeta):
     FIELDS: dict
 
-    def __init__(self):
+    # 可接受字典传参
+    def __init__(self, *args, **kwargs):
         self._values = {}
-        # print(self.FIELDS)
+        if args:
+            raise ItemInitError(f'{self.__class__.__name__} does not support positional arguments. '
+                                f'Use keyword arguments instead.')
+        if kwargs:
+            for key, value in kwargs.items():
+                self[key] = value
 
     def __setitem__(self, key, value):
         if key not in self.FIELDS:
@@ -29,12 +36,11 @@ class Item(MutableMapping, metaclass=ItemMeta):
     def __getattribute__(self, key):
         fields = super().__getattribute__('FIELDS')
         if key in fields:
-            raise AttributeError(f"Use [{key!r}] syntax to access {key}")
-        return object.__getattribute__(self, key)
-
-    def __getattr__(self, item):
-        raise AttributeError(f"{self.__class__.__name__} does not have attribute {item}, "
-                             f"please add the `{item}` field to the {self.__class__.__name__}")
+            raise AttributeError(f"Use [{key!r}] syntax to access {key}, not dot notation")
+        try:
+            return object.__getattribute__(self, key)
+        except AttributeError:
+            raise AttributeError(f"{self.__class__.__name__} does not have attribute {key}")
 
     def __setattr__(self, key, value):
         if key == '_values':  # 允许_values属性正常 self._values = {}
@@ -64,10 +70,10 @@ if __name__ == '__main__':
         url = Field()
         title = Field()
 
-    test = TestItem()
+    test = TestItem(url='https://www.baidu.com', title='百度一下')
     test['url']=999
     test['title']=999
     print(test['title'])
-    print(test.xxxx)
+    print(test.xxx)
 
 

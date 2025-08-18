@@ -9,6 +9,9 @@ class OutputTypeError(Exception):
     pass
 
 
-
 class SpiderTypeError(TypeError):
+    pass
+
+
+class ItemInitError(Exception):
     pass
