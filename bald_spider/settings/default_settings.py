@@ -6,4 +6,5 @@ default config
 """
 
 CONCURRENCY = 16
-TEST = 333
+
+LOG_LEVEL = 'INFO'

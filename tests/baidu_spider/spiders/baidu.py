@@ -5,7 +5,8 @@ import time
 
 from bald_spider import Request
 from bald_spider.spider import Spider
-from items import BaiduItem
+from tests.baidu_spider.items import BaiduItem
+
 
 # 这个类需要继承于基类
 class BaiduSpider(Spider):

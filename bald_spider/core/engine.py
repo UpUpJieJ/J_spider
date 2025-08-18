@@ -13,11 +13,15 @@ from bald_spider.spider import Spider
 from inspect import iscoroutine, isgenerator, isasyncgen
 from bald_spider.utils.spider import transform
 from bald_spider.task_manager import TaskManager
+from bald_spider.utils.log import get_logger
+
+
 class Engine:
 
     def __init__(self, crawler):
-        self.crawler = crawler
         self.settings = crawler.settings
+        self.logger = get_logger(self.__class__.__name__)
+        self.crawler = crawler
         self.downloader: Optional[Downloader] = None
         self.scheduler: Optional[Scheduler] = None
         self.processor: Optional[Processor] = None
@@ -29,6 +33,8 @@ class Engine:
     # 接受一个spider对象并且启动实例
     async def start_spider(self, spider):
         self.running = True
+        self.logger.info(f"info Starting spider (project name: {self.settings.get('PROJECT_NAME')})")
+        self.logger.debug(f"debug Starting spider (project name: {self.settings.get('PROJECT_NAME')})")
         self.spider = spider
         self.scheduler = Scheduler()
         if hasattr(self.scheduler, "open"):
@@ -44,6 +50,7 @@ class Engine:
         crawling = asyncio.create_task(self.crawl())
         # 做额外事情
         await crawling
+
     async def crawl(self):
         """
         下载逻辑
@@ -54,7 +61,7 @@ class Engine:
                 await self._crawl(request)
             else:
                 try:
-                    start_request = next(self.start_requests)  # noqa
+                    start_request = next(self.start_requests)
                     # self.downloader.download(start_request)
                 except StopIteration:
                     self.start_requests = None
@@ -65,6 +72,8 @@ class Engine:
                     if not await self._exit():
                         continue
                     self.running = False
+                    if self.start_requests is not None:
+                        self.logger.warning(f"Error during start_requests: {exc}")
                 else:  # 不直接下载 使用调度器 入队
                     await self.enqueue_requests(start_request)
 
@@ -75,6 +84,7 @@ class Engine:
             # 处理outputs
             if outputs:
                 await self._handle_spider_outputs(outputs)
+
         await self.task_manager.semaphore.acquire()
         self.task_manager.create_task(crawl_task())
 
@@ -90,6 +100,7 @@ class Engine:
                     await _outputs
                 else:
                     return transform(_outputs)
+
         _response = await self.downloader.fetch(request)
         outputs = await _success(_response)
         return outputs
@@ -112,7 +123,8 @@ class Engine:
             if isinstance(spider_output, (Request, Item)):
                 await self.processor.enqueue(spider_output)
             else:
-                raise OutputTypeError(f"Spider {self.spider } must return `Request` or `item`, but get {type(spider_output)}")
+                raise OutputTypeError(
+                    f"Spider {self.spider} must return `Request` or `item`, but get {type(spider_output)}")
 
     async def _exit(self):
         if self.scheduler.idle() and self.downloader.idle() and self.task_manager.all_done() and self.processor.idle():
