@@ -40,6 +40,8 @@ class Downloader:
         self._verify_ssl: Optional[bool] = None
         self._timeout: Optional[ClientTimeout] = None
         self._use_session: Optional[bool] = None
+        self.trace_config: Optional[TraceConfig] = None
+        self._use_session: Optional[bool] = None
 
         self.logger = get_logger(self.__class__.__name__, crawler.settings.get('LOG_LEVEL'))
         self.request_method = {
@@ -54,18 +56,18 @@ class Downloader:
         self._verify_ssl = self.crawler.settings.getbool('VERIFY_SSL')
         self._timeout = ClientTimeout(total=request_timeout)
         self._use_session = self.crawler.settings.getbool('USE_SESSION')
+        self.trace_config = TraceConfig()
+        self.trace_config.on_request_start.append(self.request_start)
         if self._use_session:
             self.connector = TCPConnector(verify_ssl=self._verify_ssl)
-            trace_config = TraceConfig()
-            trace_config.on_request_start.append(self.request_start)
-            self.session = ClientSession(connector=self.connector, timeout=self._timeout, trace_configs=[trace_config])
+            self.session = ClientSession(connector=self.connector, timeout=self._timeout, trace_configs=[self.trace_config])
 
     async def fetch(self, request) -> Optional[Response]:
         async with self._active(request):
             response = await self.download(request)
             return response
 
-    async def download(self, request) -> Response:
+    async def download(self, request) -> Optional[Response]:
         try:
             if self._use_session:
                 response = await self.send_request(self.session, request)
@@ -73,17 +75,15 @@ class Downloader:
             else:
                 # 每次请求都使用新的 session
                 connector = TCPConnector(verify_ssl=self._verify_ssl)
-                trace_config = TraceConfig()
-                trace_config.on_request_start.append(self.request_start)
                 async with ClientSession(
-                        connector=connector, timeout=self._timeout, trace_configs=[trace_config]
+                        connector=connector, timeout=self._timeout, trace_configs=[self.trace_config]
                 ) as session:
                     response = await self.send_request(session, request)
                     body = await response.read()
 
         except Exception as e:
             self.logger.error(f'Error while downloading {request.url}: {e}')
-            raise e
+            return None
         return self.structure_response(request, response, body)
 
     @staticmethod
@@ -111,7 +111,7 @@ class Downloader:
 
     @staticmethod
     async def _post(session, request) -> ClientResponse:
-        return await session.get(
+        return await session.post(
             request.url,
             data=request.body,
             headers=request.headers,

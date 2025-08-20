@@ -106,6 +106,8 @@ class Engine:
                     return transform(_outputs)
 
         _response = await self.downloader.fetch(request)
+        if _response is None:
+            return None
         outputs = await _success(_response)
         return outputs
 
