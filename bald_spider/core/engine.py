@@ -39,7 +39,9 @@ class Engine:
         self.scheduler = Scheduler()
         if hasattr(self.scheduler, "open"):
             self.scheduler.open()
-        self.downloader = Downloader()
+        self.downloader = Downloader(self.crawler)
+        if hasattr(self.downloader, "open"):
+            self.downloader.open()
         self.processor = Processor(self.crawler)
         self.start_requests = iter(spider.start_requests())
         # await self.crawl()
@@ -76,6 +78,8 @@ class Engine:
                         self.logger.warning(f"Error during start_requests: {exc}")
                 else:  # 不直接下载 使用调度器 入队
                     await self.enqueue_requests(start_request)
+        if not self.running:
+            await self.close_spider()
 
     async def _crawl(self, request):
         # todo 实现并发
@@ -130,3 +134,6 @@ class Engine:
         if self.scheduler.idle() and self.downloader.idle() and self.task_manager.all_done() and self.processor.idle():
             return True
         return False
+
+    async def close_spider(self):
+        await self.downloader.close()

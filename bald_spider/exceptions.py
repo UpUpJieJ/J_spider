@@ -15,3 +15,7 @@ class SpiderTypeError(TypeError):
 
 class ItemInitError(Exception):
     pass
+
+
+class DecodeError(Exception):
+    pass

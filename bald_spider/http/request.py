@@ -14,7 +14,9 @@ class Request:
                  cookies: Optional[Dict] = None,
                  params: Optional[Dict] = None,
                  proxy: Optional[Dict] = None,
-                 body=''
+                 body='',
+                 encoding='utf-8',
+                 meta: Optional[Dict] = None,
                  ):
         self.url = url
         self.method = method
@@ -25,7 +27,15 @@ class Request:
         self.priority = priority
         self.proxy = proxy
         self.body = body
+        self.encoding = encoding
+        self._meta = meta if meta else {}
+
+    def __str__(self):
+        return f'{self.url} {self.method}'
 
     def __lt__(self, other):
         return self.priority < other.priority
 
+    @property
+    def meta(self):
+        return self._meta

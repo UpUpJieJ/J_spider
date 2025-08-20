@@ -13,12 +13,12 @@ class BaiduSpider(Spider):
 
     start_urls = ["https://www.baidu.com", "https://www.douban.com"]
 
-    custom_settings = {'CONCURRENCY': 10}
+    # custom_settings = {'CONCURRENCY': 10}
 
     # 重写基类的回调函数 使之可以处理多次请求
     async def parse(self, response):
         # print('>>>>>', response)
-        for i in range(10):
+        for i in range(2):
             url = "https://www.baidu.com"
             request = Request(url=url,callback=self.page_parse)
             yield request
