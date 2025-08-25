@@ -1,40 +1,21 @@
 # encoding: utf-8
 # @Author: Ji jie
+# @Date  :  2025/08/20
+# encoding: utf-8
+# @Author: Ji jie
 # @Date  :  2024/06/22
-from contextlib import asynccontextmanager
-from typing import Set, Final, Optional
+from typing import Optional
+
 from aiohttp import ClientSession, TCPConnector, BaseConnector, ClientTimeout, ClientResponse, TraceConfig
 
 from bald_spider import Response
-from bald_spider.utils.log import get_logger
+from bald_spider.core.downloader import DownloaderBase
 
 
-class ActiveRequestManager:
-    def __init__(self):
-        self._active: Final[Set] = set()
-
-    def add(self, request):
-        self._active.add(request)
-
-    def remove(self, request):
-        self._active.remove(request)
-
-    @asynccontextmanager
-    async def __call__(self, request):
-        try:
-            yield self.add(request)
-        finally:
-            self.remove(request)
-
-    def __len__(self):
-        return len(self._active)
-
-
-class Downloader:
+class AioDownloader(DownloaderBase):
 
     def __init__(self, crawler):
-        self.crawler = crawler
-        self._active = ActiveRequestManager()
+        super().__init__(crawler)
         self.session: Optional[ClientSession] = None
         self.connector: Optional[BaseConnector] = None
         self._verify_ssl: Optional[bool] = None
@@ -43,15 +24,13 @@ class Downloader:
         self.trace_config: Optional[TraceConfig] = None
         self._use_session: Optional[bool] = None
 
-        self.logger = get_logger(self.__class__.__name__, crawler.settings.get('LOG_LEVEL'))
         self.request_method = {
             'get': self._get,
             'post': self._post,
         }
 
     def open(self):
-        self.logger.info(f"{self.crawler.spider} <downloader class: {type(self).__name__}>"
-                         f"<concurrency: {self.crawler.settings.getint('CONCURRENCY')}>")
+        super().open()
         request_timeout = self.crawler.settings.getint('REQUEST_TIMEOUT')
         self._verify_ssl = self.crawler.settings.getbool('VERIFY_SSL')
         self._timeout = ClientTimeout(total=request_timeout)
@@ -60,12 +39,8 @@ class Downloader:
         self.trace_config.on_request_start.append(self.request_start)
         if self._use_session:
             self.connector = TCPConnector(verify_ssl=self._verify_ssl)
-            self.session = ClientSession(connector=self.connector, timeout=self._timeout, trace_configs=[self.trace_config])
-
-    async def fetch(self, request) -> Optional[Response]:
-        async with self._active(request):
-            response = await self.download(request)
-            return response
+            self.session = ClientSession(connector=self.connector, timeout=self._timeout,
+                                         trace_configs=[self.trace_config])
 
     async def download(self, request) -> Optional[Response]:
         try:
@@ -121,12 +96,6 @@ class Downloader:
 
     async def request_start(self, _session, _trace_config_ctx, params):
         self.logger.debug(f'Request Downloading: {params.method} {params.url}')
-
-    def idle(self) -> bool:
-        return len(self) == 0
-
-    def __len__(self):
-        return len(self._active)
 
     async def close(self):
         if self.connector:

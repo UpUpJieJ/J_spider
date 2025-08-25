@@ -8,7 +8,7 @@ from bald_spider.crawler import CrawlProcess
 from tests.baidu_spider.spiders.baidu import BaiduSpider
 from tests.baidu_spider.spiders.baidu2 import BaiduSpider2
 from bald_spider.utils.project import get_settings
-
+from bald_spider.utils import system as _
 
 async def run():
     settings = get_settings()

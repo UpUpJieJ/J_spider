@@ -5,7 +5,7 @@ import asyncio
 from typing import Optional, Generator, Callable
 
 from bald_spider import Request, Item
-from bald_spider.core.downloader import Downloader
+from bald_spider.core.downloader import DownloaderBase
 from bald_spider.core.processor import Processor
 from bald_spider.core.scheduler import Scheduler
 from bald_spider.exceptions import TransformTypeError, OutputTypeError
@@ -14,6 +14,7 @@ from inspect import iscoroutine, isgenerator, isasyncgen
 from bald_spider.utils.spider import transform
 from bald_spider.task_manager import TaskManager
 from bald_spider.utils.log import get_logger
+from bald_spider.utils.project import load_class
 
 
 class Engine:
@@ -22,13 +23,20 @@ class Engine:
         self.settings = crawler.settings
         self.logger = get_logger(self.__class__.__name__)
         self.crawler = crawler
-        self.downloader: Optional[Downloader] = None
+        self.downloader: Optional[DownloaderBase] = None
         self.scheduler: Optional[Scheduler] = None
         self.processor: Optional[Processor] = None
         self.spider: Optional[Spider] = None
         self.start_requests: Optional[Generator] = None
         self.task_manager: TaskManager = TaskManager(self.settings.getint('CONCURRENCY'))
         self.running = False
+
+    def _get_downloader(self):
+        downloader_cls = load_class(self.settings.get('DOWNLOADER'))
+        if not issubclass(downloader_cls, DownloaderBase):
+            raise TypeError(f"The downloader class {self.settings.get('DOWNLOADER')} "
+                            f"doesn't fully implemented required interface.")
+        return downloader_cls
 
     # 接受一个spider对象并且启动实例
     async def start_spider(self, spider):
@@ -39,7 +47,8 @@ class Engine:
         self.scheduler = Scheduler()
         if hasattr(self.scheduler, "open"):
             self.scheduler.open()
-        self.downloader = Downloader(self.crawler)
+        downloader_cls = self._get_downloader()
+        self.downloader = downloader_cls.create_instance(self.crawler)
         if hasattr(self.downloader, "open"):
             self.downloader.open()
         self.processor = Processor(self.crawler)

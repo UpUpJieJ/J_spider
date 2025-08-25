@@ -3,12 +3,15 @@
 # @Date  :  2025/05/11
 import os.path
 import sys
+from importlib import import_module
 
 from bald_spider.settings.setting_manager import SettingsManager
+
 
 def _get_closest(path='.'):
     path = os.path.abspath(path)
     return path
+
 
 def _init_env():
     closest = _get_closest()
@@ -16,8 +19,9 @@ def _init_env():
         project_dir = os.path.dirname(closest)
         sys.path.append(project_dir)
 
+
 def get_settings(settings='settings'):
-    _settings = SettingsManager({'1':2})
+    _settings = SettingsManager()
     _init_env()
     _settings.set_setting(settings)
     return _settings
@@ -26,3 +30,18 @@ def get_settings(settings='settings'):
 def merge_settings(spider, settings):
     if hasattr(spider, "custom_settings"):
         settings.update_values(spider.custom_settings)
+
+
+def load_class(_path):
+    if not isinstance(_path, str):
+        if callable(_path):
+            return _path
+        else:
+            raise TypeError(f"args expected string or object, got {type(_path)}")
+    _class = _path.split('.')[-1]
+    _module = '.'.join(_path.split('.')[:-1])
+    try:
+        cls = getattr(import_module(_module), _class)
+    except AttributeError:
+        raise ImportError(f"{_module} does not define {_class}")
+    return cls
