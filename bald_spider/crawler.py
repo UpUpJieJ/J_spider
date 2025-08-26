@@ -2,6 +2,7 @@
 # @Author: Ji jie
 # @Date  :  2025/05/24
 import asyncio
+import signal
 from typing import Type, Final, Set, Optional
 
 from bald_spider.core.engine import Engine
@@ -9,6 +10,10 @@ from bald_spider.exceptions import SpiderTypeError
 from bald_spider.settings.setting_manager import SettingsManager
 from bald_spider.spider import Spider
 from bald_spider.utils.project import merge_settings
+from bald_spider.stats_collect import StatsCollector
+from bald_spider.utils.log import get_logger
+from bald_spider.utils.date import now
+logger = get_logger(__name__)
 
 
 class Crawler:
@@ -20,13 +25,16 @@ class Crawler:
         self.spider_cls = spider_cls
         self.spider: Optional[Spider] = None
         self.engine: Optional[Engine] = None
+        self.stats: Optional[StatsCollector] = None
         self.settings: SettingsManager = settings.copy()
+
     async def crawl(self) -> None:
         """
         启动爬虫
         """
         self.spider = self._create_spider()
         self.engine = self._create_engine()
+        self.stats = self._create_stats()
         await self.engine.start_spider(self.spider)
 
     def _create_spider(self):
@@ -38,10 +46,17 @@ class Crawler:
         engine = Engine(self)
         return engine
 
+    def _create_stats(self):
+        stats = StatsCollector(self)
+        stats['start_time'] = now()
+        return stats
+
     def _set_spider(self, spider):
         merge_settings(spider, self.settings)
 
-
+    async def close(self, reason='finished'):
+        self.stats['end_time'] = now()
+        self.stats.close_spider(self.spider, reason)
 
 class CrawlProcess:
 
@@ -49,6 +64,8 @@ class CrawlProcess:
         self.crawlers: Final[Set] = set()
         self._active: Final[Set] = set()
         self.settings: SettingsManager = settings
+
+        signal.signal(signal.SIGINT, self._shutdown)
 
     async def crawl(self, spider: Type[Spider]):
         # 通过这个spider创建crawler
@@ -63,8 +80,15 @@ class CrawlProcess:
 
     async def start(self):
         await asyncio.gather(*self._active)
+
     def _create_crawler(self, spider_cls) -> Crawler:
         if isinstance(spider_cls, str):
             raise SpiderTypeError(f'{type(self)}.crwal args: must be a Spider class')
         crawler = Crawler(spider_cls, self.settings)
         return crawler
+
+    def _shutdown(self, signum, frame):
+        for crawler in self.crawlers:
+            crawler.engine.running = False
+            crawler.engine.normal = False
+        logger.warning(f'spiders received `ctrl c` signal, closed...')

@@ -30,8 +30,9 @@ class Engine:
         self.start_requests: Optional[Generator] = None
         self.task_manager: TaskManager = TaskManager(self.settings.getint('CONCURRENCY'))
         self.running = False
+        self.normal = True
 
-    def _get_downloader(self):
+    def _get_downloader_cls(self):
         downloader_cls = load_class(self.settings.get('DOWNLOADER'))
         if not issubclass(downloader_cls, DownloaderBase):
             raise TypeError(f"The downloader class {self.settings.get('DOWNLOADER')} "
@@ -44,10 +45,10 @@ class Engine:
         self.logger.info(f"info Starting spider (project name: {self.settings.get('PROJECT_NAME')})")
         self.logger.debug(f"debug Starting spider (project name: {self.settings.get('PROJECT_NAME')})")
         self.spider = spider
-        self.scheduler = Scheduler()
+        self.scheduler = Scheduler(self.crawler)
         if hasattr(self.scheduler, "open"):
             self.scheduler.open()
-        downloader_cls = self._get_downloader()
+        downloader_cls = self._get_downloader_cls()
         self.downloader = downloader_cls.create_instance(self.crawler)
         if hasattr(self.downloader, "open"):
             self.downloader.open()
@@ -60,6 +61,7 @@ class Engine:
         # 创建task
         crawling = asyncio.create_task(self.crawl())
         # 做额外事情
+        asyncio.create_task(self.scheduler.interval_log(self.settings.getint('LOG_INTERVAL')))
         await crawling
 
     async def crawl(self):
@@ -147,4 +149,9 @@ class Engine:
         return False
 
     async def close_spider(self):
+        await asyncio.gather(*self.task_manager.current_task)
         await self.downloader.close()
+        if self.normal:
+            await self.crawler.close()
+        else:
+            await self.crawler.close(reason="closed By KeyboardInterrupt")

@@ -23,6 +23,7 @@ class Processor:
                 await self._process_item(output)
 
     async def _process_item(self, item):
+        self.crawler.stats.inc_value('item_successful_count')
         print(item)
 
     async def enqueue(self, output: Union[Request, Item]):

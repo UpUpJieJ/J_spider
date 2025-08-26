@@ -10,6 +10,7 @@ from tests.baidu_spider.spiders.baidu2 import BaiduSpider2
 from bald_spider.utils.project import get_settings
 from bald_spider.utils import system as _
 
+
 async def run():
     settings = get_settings()
     process = CrawlProcess(settings)
@@ -17,11 +18,11 @@ async def run():
     # await process.crawl(BaiduSpider2)
     await process.start()
 
-
-
     # baidu_spider = BaiduSpider()
     # engine = Engine(settings)
     # await engine.start_spider(baidu_spider)
+
+
 s = time.time()
 asyncio.run(run())
 print(time.time() - s)

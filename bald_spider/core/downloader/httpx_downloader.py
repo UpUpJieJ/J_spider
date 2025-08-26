@@ -37,6 +37,8 @@ class HTTPXDownloader(DownloaderBase):
         except Exception as e:
             self.logger.error(f'Error while downloading {request.url}: {e}')
             return None
+        else:
+            self.crawler.stats.inc_value('response_received_count')
         return self.structure_response(request, response, body)
 
     @staticmethod
@@ -49,5 +51,4 @@ class HTTPXDownloader(DownloaderBase):
             cookies=response.cookies,
             body=body,
         )
-
 

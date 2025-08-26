@@ -7,4 +7,4 @@ from bald_spider import Item
 
 class BaiduItem(Item):
     title = Field()
-    price = Field()
+    url = Field()

@@ -18,25 +18,26 @@ class BaiduSpider(Spider):
     # 重写基类的回调函数 使之可以处理多次请求
     async def parse(self, response):
         # print('>>>>>', response)
-        for i in range(2):
+        for i in range(12):
             url = "https://www.baidu.com"
             request = Request(url=url,callback=self.page_parse)
             yield request
 
     def page_parse(self, response):
         # print('page_parse', response)
-        for i in range(10):
+        for i in range(12):
             url = "https://www.baidu.com"
             request = Request(url=url,callback=self.parse_detail)
             yield request
 
     def parse_detail(self, response):
-        # reponse 从download传来的
+        # 接收download的结果
+        # response 从download传来的
         # print('parse_detail', response)
         item = BaiduItem()
-        item['title'] = "baidu"
-        item['price'] = 10
+        item['title'] = response.xpath('//title/text()').get()
+        item['url'] = response.url
         yield item
-    # 接收download的结果
+
 
 

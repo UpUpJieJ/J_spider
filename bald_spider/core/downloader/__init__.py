@@ -5,6 +5,8 @@ from abc import abstractmethod, ABCMeta
 from contextlib import asynccontextmanager
 from typing import Set, Final, Optional
 
+from typing_extensions import Self
+
 from bald_spider import Response, Request
 from bald_spider.utils.log import get_logger
 
@@ -45,10 +47,10 @@ class DownloaderBase(metaclass=DownloaderMeta):
         self.logger = get_logger(self.__class__.__name__, crawler.settings.get('LOG_LEVEL'))
 
     @classmethod
-    def create_instance(cls, *args, **kwargs):
+    def create_instance(cls, *args, **kwargs) -> Self:
         return cls(*args, **kwargs)
 
-    def open(self):
+    def open(self) -> None:
         self.logger.info(f"{self.crawler.spider} <downloader class: {type(self).__name__}> "
                          f"<concurrency: {self.crawler.settings.getint('CONCURRENCY')}>")
 
@@ -64,8 +66,8 @@ class DownloaderBase(metaclass=DownloaderMeta):
     def idle(self) -> bool:
         return len(self) == 0
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._active)
 
-    async def close(self):
+    async def close(self) -> None:
         pass
