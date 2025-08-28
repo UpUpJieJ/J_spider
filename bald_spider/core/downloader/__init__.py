@@ -9,6 +9,7 @@ from typing_extensions import Self
 
 from bald_spider import Response, Request
 from bald_spider.utils.log import get_logger
+from bald_spider.middleware.middleware_manager import MiddlewareManager
 
 
 class ActiveRequestManager:
@@ -44,6 +45,7 @@ class DownloaderBase(metaclass=DownloaderMeta):
     def __init__(self, crawler):
         self.crawler = crawler
         self._active = ActiveRequestManager()
+        self.middlewares: Optional[MiddlewareManager] = None
         self.logger = get_logger(self.__class__.__name__, crawler.settings.get('LOG_LEVEL'))
 
     @classmethod
@@ -53,10 +55,11 @@ class DownloaderBase(metaclass=DownloaderMeta):
     def open(self) -> None:
         self.logger.info(f"{self.crawler.spider} <downloader class: {type(self).__name__}> "
                          f"<concurrency: {self.crawler.settings.getint('CONCURRENCY')}>")
+        self.middlewares = MiddlewareManager.create_instance(self.crawler)
 
     async def fetch(self, request) -> Optional[Response]:
         async with self._active(request):
-            response = await self.download(request)
+            response = await self.middlewares.download(request)
             return response
 
     @abstractmethod

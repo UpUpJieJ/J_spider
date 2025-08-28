@@ -19,3 +19,14 @@ class ItemInitError(Exception):
 
 class DecodeError(Exception):
     pass
+
+
+class MiddlewareInitError(Exception):
+    pass
+
+
+class InvalidOutputError(Exception):
+    pass
+
+class RequestMethodError(Exception):
+    pass

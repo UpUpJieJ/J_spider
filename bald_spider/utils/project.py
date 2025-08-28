@@ -3,7 +3,9 @@
 # @Date  :  2025/05/11
 import os.path
 import sys
+from inspect import iscoroutinefunction
 from importlib import import_module
+from typing import Callable
 
 from bald_spider.settings.setting_manager import SettingsManager
 
@@ -45,3 +47,9 @@ def load_class(_path):
     except AttributeError:
         raise ImportError(f"{_module} does not define {_class}")
     return cls
+
+
+async def common_call(func: Callable, *args, **kwargs):
+    if iscoroutinefunction(func):
+        return await func(*args, **kwargs)
+    return func(*args, **kwargs)
