@@ -28,5 +28,12 @@ class MiddlewareInitError(Exception):
 class InvalidOutputError(Exception):
     pass
 
+
 class RequestMethodError(Exception):
     pass
+
+
+class IgnoreRequest(Exception):
+    def __init__(self, message=None):
+        self.message = message
+        super(IgnoreRequest, self).__init__(self.message)

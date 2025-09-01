@@ -8,6 +8,7 @@ from bald_spider import Request, Item
 from bald_spider.core.downloader import DownloaderBase
 from bald_spider.core.processor import Processor
 from bald_spider.core.scheduler import Scheduler
+from bald_spider.event import spider_opened, spider_closed, spider_error
 from bald_spider.exceptions import TransformTypeError, OutputTypeError
 from bald_spider.spider import Spider
 from inspect import iscoroutine, isgenerator, isasyncgen
@@ -58,10 +59,11 @@ class Engine:
         await self._open_spider()
 
     async def _open_spider(self):
+        _ = asyncio.create_task(self.crawler.subscriber.notify(spider_opened))
         # 创建task
         crawling = asyncio.create_task(self.crawl())
         # 做额外事情
-        asyncio.create_task(self.scheduler.interval_log(self.settings.getint('LOG_INTERVAL')))
+        _ = asyncio.create_task(self.scheduler.interval_log(self.settings.getint('LOG_INTERVAL')))
         await crawling
 
     async def crawl(self):
@@ -139,6 +141,11 @@ class Engine:
             # 处理是请求还是数据
             if isinstance(spider_output, (Request, Item)):
                 await self.processor.enqueue(spider_output)
+            elif isinstance(spider_output, Exception):
+                _ = asyncio.create_task(
+                    self.crawler.subscriber.notify(spider_error, spider_output, self.spider)
+                )
+                raise spider_output
             else:
                 raise OutputTypeError(
                     f"Spider {self.spider} must return `Request` or `item`, but get {type(spider_output)}")
@@ -149,6 +156,7 @@ class Engine:
         return False
 
     async def close_spider(self):
+        _ = asyncio.create_task(self.crawler.subscriber.notify(spider_closed))
         await asyncio.gather(*self.task_manager.current_task)
         await self.downloader.close()
         if self.normal:

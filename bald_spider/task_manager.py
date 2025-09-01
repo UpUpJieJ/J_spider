@@ -8,9 +8,10 @@ from typing import Final, Set
 
 class TaskManager:
 
-    def __init__(self,total_concurrency=8):
+    def __init__(self, total_concurrency=8):
         self.current_task: Final[Set] = set()
         self.semaphore: Semaphore = Semaphore(total_concurrency)
+
     def create_task(self, coroutine) -> Task:
         task = asyncio.create_task(coroutine)
         self.current_task.add(task)

@@ -3,13 +3,16 @@
 # @Date  :  2025/08/26
 import random
 
+from bald_spider.exceptions import IgnoreRequest
 from bald_spider.middleware import BaseMiddleware
 
 
 class TestMiddleware(BaseMiddleware):
-    # def process_request(self, request, spider):
-    #     print("test middleware: process_request", request, spider)
-    #     return None
+    def process_request(self, request, spider):
+        if random.randint(0, 10) > 6:
+            raise IgnoreRequest('重复请求')
+        if '11' in request.url:
+            raise IgnoreRequest('url错误')
 
     # def process_response(self, request, response, spider):
     #     pass

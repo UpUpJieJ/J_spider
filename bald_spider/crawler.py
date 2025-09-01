@@ -6,9 +6,11 @@ import signal
 from typing import Type, Final, Set, Optional
 
 from bald_spider.core.engine import Engine
+from bald_spider.event import spider_opened, spider_closed
 from bald_spider.exceptions import SpiderTypeError
 from bald_spider.settings.setting_manager import SettingsManager
 from bald_spider.spider import Spider
+from bald_spider.subscriber import Subscriber
 from bald_spider.utils.project import merge_settings
 from bald_spider.stats_collect import StatsCollector
 from bald_spider.utils.log import get_logger
@@ -26,16 +28,21 @@ class Crawler:
         self.spider: Optional[Spider] = None
         self.engine: Optional[Engine] = None
         self.stats: Optional[StatsCollector] = None
+        self.subscriber: Optional[Subscriber] = None
         self.settings: SettingsManager = settings.copy()
 
     async def crawl(self) -> None:
         """
         启动爬虫
         """
+        self.subscriber = self._create_subscriber()
         self.spider = self._create_spider()
         self.engine = self._create_engine()
         self.stats = self._create_stats()
         await self.engine.start_spider(self.spider)
+
+    def _create_subscriber(self):
+        return Subscriber()
 
     def _create_spider(self):
         spider = self.spider_cls.create_instance(self)
@@ -52,6 +59,9 @@ class Crawler:
         return stats
 
     def _set_spider(self, spider):
+        # 订阅事件
+        self.subscriber.subscribe(spider.spider_opened, event=spider_opened)
+        self.subscriber.subscribe(spider.spider_closed, event=spider_closed)
         merge_settings(spider, self.settings)
 
     async def close(self, reason='finished'):

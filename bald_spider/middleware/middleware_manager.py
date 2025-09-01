@@ -1,13 +1,15 @@
 # encoding: utf-8
 # @Author: Ji jie
 # @Date  :  2025/08/26
+import asyncio
 from collections import defaultdict
 from pprint import pformat
 from types import MethodType
 from typing import List, Dict, Callable, Optional
 
 from bald_spider import Request, Response
-from bald_spider.exceptions import MiddlewareInitError, InvalidOutputError, RequestMethodError
+from bald_spider.event import ignore_request, response_received
+from bald_spider.exceptions import MiddlewareInitError, InvalidOutputError, RequestMethodError, IgnoreRequest
 from bald_spider.middleware import BaseMiddleware
 from bald_spider.utils.log import get_logger
 from bald_spider.utils.project import load_class, common_call
@@ -39,13 +41,24 @@ class MiddlewareManager:
 
     async def _process_response(self, request: Request, response: Response):
         for method in reversed(self.method['process_response']):
-            response = await common_call(method, request, response, self.crawler.spider)
-            if isinstance(response, Request):
-                return response
-            if isinstance(response, Response):
-                continue
-            raise InvalidOutputError(
-                f'{response.__qualname__} must return Request or Response, but got {type(response).__name__}.')
+            try:
+                response = await common_call(method, request, response, self.crawler.spider)
+            except IgnoreRequest as exc:
+                _ = asyncio.create_task(
+                    self.crawler.subscriber.notify(ignore_request, exc, request, self.crawler.spider))
+                self.logger.info = self.logger.info(f'Ignore request: {request}')
+                self._stats.inc_value('ignore_request_count')
+                reason = exc.message
+                if reason:
+                    self._stats.inc_value('ignore_request_count/%s' % reason)
+                return None
+            else:
+                if isinstance(response, Request):
+                    return response
+                if isinstance(response, Response):
+                    continue
+                raise InvalidOutputError(
+                    f'{response.__qualname__} must return Request or Response, but got {type(response).__name__}.')
         return response
 
     async def _process_exception(self, request: Request, exception: Exception):
@@ -68,10 +81,19 @@ class MiddlewareManager:
             response = await self._process_request(request)
         except KeyError:
             raise RequestMethodError(f'{request.method.lower()} is not supported.')
+        except IgnoreRequest as exc:
+            _ = asyncio.create_task(self.crawler.subscriber.notify(ignore_request, exc, request, self.crawler.spider))
+            self.logger.info(f'Ignore request: {request}')
+            self._stats.inc_value('ignore_request_count')
+            reason = exc.message
+            if reason:
+                self._stats.inc_value('ignore_request_count/%s' % reason)
+            response = await self._process_exception(request, exc)
         except Exception as exc:
             self._stats.inc_value(f'download_error/{exc.__class__.__name__}')
             response = await self._process_exception(request, exc)
         else:
+            _ = asyncio.create_task(self.crawler.subscriber.notify(response_received, response, self.crawler.spider))
             self.crawler.stats.inc_value('response_received_count')
         if isinstance(response, Response):
             response = await self._process_response(request, response)

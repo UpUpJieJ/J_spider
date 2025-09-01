@@ -3,6 +3,8 @@
 # @Date  :  2024/06/26
 # 使用优先级队列
 import asyncio
+
+from bald_spider.event import request_scheduled
 from bald_spider.utils.pqueue import SpiderPriorityQueue
 from bald_spider.utils.log import get_logger
 from typing import Optional
@@ -25,8 +27,9 @@ class Scheduler:
         request = await self.request_queue.get()
         return request
 
-    async def enqueue_requests(self, requests):
-        await self.request_queue.put(requests)
+    async def enqueue_requests(self, request):
+        await self.request_queue.put(request)
+        _ = asyncio.create_task(self.crawler.subscriber.notify(request_scheduled, request, self.crawler.spider))
         self.crawler.stats.inc_value('request_scheduled_count', start=0)
 
     def idle(self) -> bool:

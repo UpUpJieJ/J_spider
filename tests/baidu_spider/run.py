@@ -23,6 +23,4 @@ async def run():
     # await engine.start_spider(baidu_spider)
 
 
-s = time.time()
 asyncio.run(run())
-print(time.time() - s)
