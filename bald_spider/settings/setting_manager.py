@@ -1,6 +1,7 @@
 # encoding: utf-8
 # @Author: Ji jie
 # @Date  :  2025/05/11
+import json
 from copy import deepcopy
 from importlib import import_module
 from collections.abc import MutableMapping
@@ -8,10 +9,11 @@ from bald_spider.settings import default_settings
 
 
 class SettingsManager(MutableMapping):
-    def __init__(self,values=None):
-        self.attributes={}
+    def __init__(self, values=None):
+        self.attributes = {}
         self.set_setting(default_settings)
         self.update_values(values)
+
     def __getitem__(self, item):
         if item not in self:
             return None
@@ -44,7 +46,7 @@ class SettingsManager(MutableMapping):
     def getfloat(self, key, default=0.0):
         return float(self.get(key, default))
 
-    def getbool(self, key, default=False): # noqa
+    def getbool(self, key, default=False):  # noqa
         # 兼容 字符串‘True’ 或数字1/0
         got = self.get(key, default)
         try:
@@ -62,6 +64,12 @@ class SettingsManager(MutableMapping):
             return value.split(',')
         return value
 
+    def getdict(self, key, default=None):
+        value = self.get(key, default or {})
+        if isinstance(value, str):
+            value = json.loads(value)
+        return dict(value)
+
     def set_setting(self, module):
         if isinstance(module, str):
             module = import_module(module)
@@ -74,13 +82,14 @@ class SettingsManager(MutableMapping):
 
     __repr__ = __str__
 
-    def update_values(self,values):
+    def update_values(self, values):
         if values is not None:
-            for key,value in values.items():
-                self.set(key,value)
+            for key, value in values.items():
+                self.set(key, value)
 
     def copy(self):
         return deepcopy(self)
+
 
 if __name__ == '__main__':
     settings = SettingsManager()

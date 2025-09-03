@@ -20,7 +20,7 @@ class Request:
                  ):
         self.url = url
         self.method = method
-        self.headers = headers
+        self.headers = headers if headers else {}
         self.callback = callback
         self.params = params
         self.cookies = cookies

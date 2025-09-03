@@ -14,7 +14,11 @@ class BaiduSpider(Spider):
     start_urls = ["https://www.baidu.com", "https://www.douban.com"]
 
     # custom_settings = {'CONCURRENCY': 10}
-
+    user_agent = '123Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0'
+    headers = {
+        'Accept': '123text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+        'Accept-Language': 'zh-CN,zh;q=0.9',
+     }
     @classmethod
     def create_instance(cls, crawler):
         o = cls()

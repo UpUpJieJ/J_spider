@@ -9,7 +9,8 @@ from typing import List, Dict, Callable, Optional
 
 from bald_spider import Request, Response
 from bald_spider.event import ignore_request, response_received
-from bald_spider.exceptions import MiddlewareInitError, InvalidOutputError, RequestMethodError, IgnoreRequest
+from bald_spider.exceptions import MiddlewareInitError, InvalidOutputError, RequestMethodError, IgnoreRequest, \
+    NotConfigured
 from bald_spider.middleware import BaseMiddleware
 from bald_spider.utils.log import get_logger
 from bald_spider.utils.project import load_class, common_call
@@ -46,11 +47,6 @@ class MiddlewareManager:
             except IgnoreRequest as exc:
                 _ = asyncio.create_task(
                     self.crawler.subscriber.notify(ignore_request, exc, request, self.crawler.spider))
-                self.logger.info = self.logger.info(f'Ignore request: {request}')
-                self._stats.inc_value('ignore_request_count')
-                reason = exc.message
-                if reason:
-                    self._stats.inc_value('ignore_request_count/%s' % reason)
                 return None
             else:
                 if isinstance(response, Request):
@@ -83,11 +79,6 @@ class MiddlewareManager:
             raise RequestMethodError(f'{request.method.lower()} is not supported.')
         except IgnoreRequest as exc:
             _ = asyncio.create_task(self.crawler.subscriber.notify(ignore_request, exc, request, self.crawler.spider))
-            self.logger.info(f'Ignore request: {request}')
-            self._stats.inc_value('ignore_request_count')
-            reason = exc.message
-            if reason:
-                self._stats.inc_value('ignore_request_count/%s' % reason)
             response = await self._process_exception(request, exc)
         except Exception as exc:
             self._stats.inc_value(f'download_error/{exc.__class__.__name__}')
@@ -127,9 +118,13 @@ class MiddlewareManager:
             raise MiddlewareInitError(f"Middleware init failed, "
                                       f"{middleware} must inherit from BaseMiddleware"
                                       f" or have a create_instance method")
-        instance = middleware_cls.create_instance(self.crawler)
-        self.middlewares.append(instance)
-        return True
+        try:
+            instance = middleware_cls.create_instance(self.crawler)
+            self.middlewares.append(instance)
+            return True
+        except NotConfigured:
+            return False
+
 
     @classmethod
     def create_instance(cls, *args, **kwargs):

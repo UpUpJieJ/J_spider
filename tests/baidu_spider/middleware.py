@@ -17,8 +17,8 @@ class TestMiddleware(BaseMiddleware):
     # def process_response(self, request, response, spider):
     #     pass
 
-    def process_exception(self, request, exception, spider):
-        print("test middleware: process_exception", request, exception, spider)
+    # def process_exception(self, request, exception, spider):
+    #     print("test middleware: process_exception", request, exception, spider)
 
 
 class TestMiddleware2(BaseMiddleware):
