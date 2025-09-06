@@ -9,10 +9,9 @@ from bald_spider.middleware import BaseMiddleware
 
 class TestMiddleware(BaseMiddleware):
     def process_request(self, request, spider):
-        if random.randint(0, 10) > 6:
-            raise IgnoreRequest('重复请求')
-        if '11' in request.url:
-            raise IgnoreRequest('url错误')
+        retry_times = request.meta.get("retry_times", 0)
+        if request.url == "https://www.baidu.com111" and retry_times > 0:
+            request.url = "https://www.baidu.com"
 
     # def process_response(self, request, response, spider):
     #     pass

@@ -41,8 +41,8 @@ class Scheduler:
     async def interval_log(self, interval):
         while True:
             await asyncio.sleep(interval)
-            last_item_count = self.crawler.stats.get_value('item_successful_count')
-            last_response_count = self.crawler.stats.get_value('response_received_count')
+            last_item_count = self.crawler.stats.get_value('item_successful_count', 0)
+            last_response_count = self.crawler.stats.get_value('response_received_count',0)
             item_rate = last_item_count - self.item_count
             response_rate = last_response_count - self.response_count
             self.item_count = last_item_count
