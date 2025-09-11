@@ -8,6 +8,7 @@ from typing import Type, Final, Set, Optional
 from bald_spider.core.engine import Engine
 from bald_spider.event import spider_opened, spider_closed
 from bald_spider.exceptions import SpiderTypeError
+from bald_spider.extension import ExtensionManager
 from bald_spider.settings.setting_manager import SettingsManager
 from bald_spider.spider import Spider
 from bald_spider.subscriber import Subscriber
@@ -15,6 +16,7 @@ from bald_spider.utils.project import merge_settings
 from bald_spider.stats_collect import StatsCollector
 from bald_spider.utils.log import get_logger
 from bald_spider.utils.date import now
+
 logger = get_logger(__name__)
 
 
@@ -29,6 +31,7 @@ class Crawler:
         self.engine: Optional[Engine] = None
         self.stats: Optional[StatsCollector] = None
         self.subscriber: Optional[Subscriber] = None
+        self.extension: Optional[ExtensionManager] = None
         self.settings: SettingsManager = settings.copy()
 
     async def crawl(self) -> None:
@@ -39,10 +42,16 @@ class Crawler:
         self.spider = self._create_spider()
         self.engine = self._create_engine()
         self.stats = self._create_stats()
+        self.extension = self._create_extension()
         await self.engine.start_spider(self.spider)
 
-    def _create_subscriber(self):
+    @staticmethod
+    def _create_subscriber():
         return Subscriber()
+
+    def _create_extension(self):
+        extension = ExtensionManager.create_instance(self)
+        return extension
 
     def _create_spider(self):
         spider = self.spider_cls.create_instance(self)
@@ -51,11 +60,11 @@ class Crawler:
 
     def _create_engine(self):
         engine = Engine(self)
+        engine.engine_start()
         return engine
 
     def _create_stats(self):
         stats = StatsCollector(self)
-        stats['start_time'] = now()
         return stats
 
     def _set_spider(self, spider):
@@ -65,8 +74,8 @@ class Crawler:
         merge_settings(spider, self.settings)
 
     async def close(self, reason='finished'):
-        self.stats['end_time'] = now()
         self.stats.close_spider(self.spider, reason)
+
 
 class CrawlProcess:
 

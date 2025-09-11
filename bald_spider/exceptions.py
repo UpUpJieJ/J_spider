@@ -41,3 +41,11 @@ class IgnoreRequest(Exception):
 
 class NotConfigured(Exception):
     pass
+
+
+class ExtensionInitError(Exception):
+    pass
+
+
+class ReceiverTypeError(TypeError):
+    pass

@@ -41,10 +41,18 @@ class Engine:
         return downloader_cls
 
     # 接受一个spider对象并且启动实例
-    async def start_spider(self, spider):
+    def engine_start(self):
         self.running = True
-        self.logger.info(f"info Starting spider (project name: {self.settings.get('PROJECT_NAME')})")
-        self.logger.debug(f"debug Starting spider (project name: {self.settings.get('PROJECT_NAME')})")
+        self.logger.info(
+            f"bald_spider(version: {self.settings.get('VERSION')}) started.\n"
+            f"Starting spider (project name: {self.settings.get('PROJECT_NAME')})"
+        )
+        self.logger.debug(
+            f"bald_spider(version: {self.settings.get('VERSION')}) started.\n"
+            f"Starting spider (project name: {self.settings.get('PROJECT_NAME')})"
+        )
+
+    async def start_spider(self, spider):
         self.spider = spider
         self.scheduler = Scheduler(self.crawler)
         if hasattr(self.scheduler, "open"):
@@ -63,7 +71,6 @@ class Engine:
         # 创建task
         crawling = asyncio.create_task(self.crawl())
         # 做额外事情
-        _ = asyncio.create_task(self.scheduler.interval_log(self.settings.getint('LOG_INTERVAL')))
         await crawling
 
     async def crawl(self):
@@ -156,7 +163,7 @@ class Engine:
         return False
 
     async def close_spider(self):
-        _ = asyncio.create_task(self.crawler.subscriber.notify(spider_closed))
+        await asyncio.create_task(self.crawler.subscriber.notify(spider_closed))
         await asyncio.gather(*self.task_manager.current_task)
         await self.downloader.close()
         if self.normal:

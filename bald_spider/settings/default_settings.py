@@ -4,6 +4,7 @@
 """
 default config
 """
+VERSION = 1.0
 
 CONCURRENCY = 16
 

@@ -85,7 +85,6 @@ class MiddlewareManager:
             response = await self._process_exception(request, exc)
         else:
             _ = asyncio.create_task(self.crawler.subscriber.notify(response_received, response, self.crawler.spider))
-            self.crawler.stats.inc_value('response_received_count')
         if isinstance(response, Response):
             response = await self._process_response(request, response)
         if isinstance(response, Request):

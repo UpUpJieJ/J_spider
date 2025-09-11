@@ -15,8 +15,6 @@ class Scheduler:
     def __init__(self, crawler):
         self.crawler = crawler
         self.request_queue: Optional[SpiderPriorityQueue] = None
-        self.item_count = 0
-        self.response_count = 0
         self.logger = get_logger(self.__class__.__name__, log_level=crawler.settings.get('LOG_LEVEL'))
 
     def open(self):
@@ -30,7 +28,6 @@ class Scheduler:
     async def enqueue_requests(self, request):
         await self.request_queue.put(request)
         _ = asyncio.create_task(self.crawler.subscriber.notify(request_scheduled, request, self.crawler.spider))
-        self.crawler.stats.inc_value('request_scheduled_count', start=0)
 
     def idle(self) -> bool:
         return len(self) == 0
@@ -38,14 +35,3 @@ class Scheduler:
     def __len__(self):
         return self.request_queue.qsize()
 
-    async def interval_log(self, interval):
-        while True:
-            await asyncio.sleep(interval)
-            last_item_count = self.crawler.stats.get_value('item_successful_count', 0)
-            last_response_count = self.crawler.stats.get_value('response_received_count',0)
-            item_rate = last_item_count - self.item_count
-            response_rate = last_response_count - self.response_count
-            self.item_count = last_item_count
-            self.response_count = last_response_count
-            self.logger.info(f"Crawled {last_response_count} pages (at {response_rate} pages/{interval}s),"
-                             f"Got {last_item_count} items (at {item_rate} items/{interval}s)")

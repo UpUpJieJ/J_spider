@@ -9,7 +9,7 @@ LOG_LEVEL = 'DEBUG'
 HEADERS = {}
 
 MIDDLEWARES = [
-    'baidu_spider.middleware.TestMiddleware',
+    # 'baidu_spider.middleware.TestMiddleware',
     'bald_spider.middleware.default_header.DefaultHeader',
     'bald_spider.middleware.download_delay.DownloadDelay',
     'bald_spider.middleware.response_filter.ResponseFilter',
@@ -20,7 +20,16 @@ MIDDLEWARES = [
     # 'baidu_spider.middleware.TestMiddleware3'
 ]
 
-DOWNLOAD_DELAY = 0
+EXTENSIONS = [
+    'bald_spider.extension.log_interval.LogInterval',
+    'bald_spider.extension.log_stats.LogStats',
+]
+
+
+LOG_INTERVAL = 10
+
+DOWNLOAD_DELAY = 0.5
+RANDOMNESS = True
 
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0'
 

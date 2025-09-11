@@ -30,7 +30,8 @@ class BaiduSpider(Spider):
     async def parse(self, response):
         # print('>>>>>', response)
         for i in range(4):
-            url = "https://www.httpbin.org/404"
+            # url = "https://www.httpbin.org/404"
+            url = "https://www.baidu.com"
             request = Request(url=url, callback=self.page_parse)
             yield request
 
