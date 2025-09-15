@@ -25,3 +25,6 @@ response_received = "response_received"
 
 # arg  item, spider
 item_successful = "item_successful"
+
+# arg  item, exception,  spider
+item_discard = "item_discard"

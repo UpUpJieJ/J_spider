@@ -25,10 +25,16 @@ EXTENSIONS = [
     'bald_spider.extension.log_stats.LogStats',
 ]
 
+PIPELINES = [
+    # 'bald_spider.pipeline.debug_pipeline.DebugPipeline',
+    # 'baidu_spider.pipeline.TestPipeline',
+    'baidu_spider.pipeline.MongoPipeline',
+]
+
 
 LOG_INTERVAL = 10
 
-DOWNLOAD_DELAY = 0.5
+DOWNLOAD_DELAY = 0
 RANDOMNESS = True
 
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0'
@@ -38,5 +44,6 @@ DEFAULT_HEADERS = {
     'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
 }
 
+DB_NAME = 'bald_spider'
 # ALLOWED_CODES = [404]
 # RETRY_EXCEPTIONS = []

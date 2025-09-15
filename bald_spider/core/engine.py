@@ -62,6 +62,8 @@ class Engine:
         if hasattr(self.downloader, "open"):
             self.downloader.open()
         self.processor = Processor(self.crawler)
+        if hasattr(self.processor, "open"):
+            self.processor.open()
         self.start_requests = iter(spider.start_requests())
         # await self.crawl()
         await self._open_spider()

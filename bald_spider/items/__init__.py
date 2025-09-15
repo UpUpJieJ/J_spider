@@ -10,9 +10,12 @@ class Field(dict):
 class ItemMeta(ABCMeta):
     def __new__(cls, name, bases, attrs):
         field = {}
+        cls_attr = {}
         for k, v in attrs.items():
             if isinstance(v, Field):
                 field[k] = v
-        cls_instance = super().__new__(cls, name, bases, attrs)
+            else:
+                cls_attr[k] = v
+        cls_instance = super().__new__(cls, name, bases, cls_attr)
         cls_instance.FIELDS = field
         return cls_instance
