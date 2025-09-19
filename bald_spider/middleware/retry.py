@@ -84,7 +84,6 @@ class Retry:
             return self._retry(request, type(exception).__name__, spider)
 
     def _retry(self, request, reason, spider):
-        # todo 去重逻辑没写 要保证重试的 不被去重
         # todo 请求的优先级问题
         retry_times = request.meta.get('retry_times', 0)
         if retry_times < self.max_retry_times:
@@ -92,6 +91,7 @@ class Retry:
             self.logger.info(
                 f'Retrying {spider} {request} {reason}(failed {retry_times} times)')
             request.meta['retry_times'] = retry_times
+            request.dont_filter = True
             self.stats.inc_value('retry/count')
             return request
         else:

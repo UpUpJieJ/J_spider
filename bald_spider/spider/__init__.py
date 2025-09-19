@@ -27,7 +27,8 @@ class Spider:
         """
         if self.start_urls:
             for url in self.start_urls:
-                yield Request(url=url)
+                # 初始请求不能被过滤
+                yield Request(url=url, dont_filter=True)
         else:
             if hasattr(self, 'start_url') and isinstance(getattr(self, 'start_url'), str):
                 yield Request(getattr(self, 'start_url'))

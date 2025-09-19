@@ -14,12 +14,13 @@ class Request:
                  cookies: Optional[Dict] = None,
                  params: Optional[Dict] = None,
                  proxy: Optional[Dict] = None,
-                 body='',
+                 body: Optional[Dict] = None,
                  encoding='utf-8',
                  meta: Optional[Dict] = None,
+                 dont_filter: bool = False,
                  ):
         self.url = url
-        self.method = method
+        self.method = method.lower()
         self.headers = headers if headers else {}
         self.callback = callback
         self.params = params
@@ -28,6 +29,7 @@ class Request:
         self.proxy = proxy
         self.body = body
         self.encoding = encoding
+        self.dont_filter = dont_filter
         self._meta = meta if meta else {}
 
     def __str__(self):

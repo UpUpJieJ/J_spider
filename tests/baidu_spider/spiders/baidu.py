@@ -32,14 +32,14 @@ class BaiduSpider(Spider):
         for i in range(4):
             # url = "https://www.httpbin.org/404"
             url = "https://www.baidu.com"
-            request = Request(url=url, callback=self.page_parse)
+            request = Request(url=url, callback=self.page_parse,dont_filter=True)
             yield request
 
     def page_parse(self, response):
         # print('page_parse', response)
         for i in range(2):
             url = "https://www.baidu.com"
-            request = Request(url=url, callback=self.parse_detail)
+            request = Request(url=url, callback=self.parse_detail, dont_filter=False)
             yield request
 
     def parse_detail(self, response):

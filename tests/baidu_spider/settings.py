@@ -28,7 +28,7 @@ EXTENSIONS = [
 PIPELINES = [
     # 'bald_spider.pipeline.debug_pipeline.DebugPipeline',
     # 'baidu_spider.pipeline.TestPipeline',
-    'baidu_spider.pipeline.MongoPipeline',
+    # 'baidu_spider.pipeline.MongoPipeline',
 ]
 
 
@@ -47,3 +47,15 @@ DEFAULT_HEADERS = {
 DB_NAME = 'bald_spider'
 # ALLOWED_CODES = [404]
 # RETRY_EXCEPTIONS = []
+
+# filter
+FILTER_DEBUG = True
+FILTER_CLS = 'bald_spider.duplicate_filter.memory_filter.MemoryFilter'
+
+# redis_filter
+REDIS_URL = "redis://localhost/0"
+DECODE_RESPONSES = True
+REDIS_KEY = "request_fingerprint"
+SAVE_FINGERPRINT = True
+
+REQUEST_DIR = "."
