@@ -31,10 +31,12 @@ RETRY_HTTP_CODES = [408, 429, 500, 502, 503, 504, 522, 524]
 IGNORE_HTTP_CODES = [403, 404]
 MAX_RETRY_TIMES = 2
 ALLOWED_CODES = []
+RETRY_PRIORITY = 1
+
 
 # filter
-FILTER_DEBUG = True
-FILTER_CLS = 'bald_spider.duplicate_filter.memory_filter.MemoryFilter'
+# FILTER_DEBUG = True
+# FILTER_CLS = 'bald_spider.duplicate_filter.memory_filter.MemoryFilter'
 # FILTER_CLS = 'bald_spider.duplicate_filter.redis_filter.RedisFilter'
 # FILTER_CLS = 'bald_spider.duplicate_filter.aioredis_filter.AioRedisFilter'
 
@@ -45,3 +47,5 @@ REDIS_KEY = "request_fingerprint"
 SAVE_FINGERPRINT = True
 
 REQUEST_DIR = "."
+
+DEPTH_PRIORITY = 1

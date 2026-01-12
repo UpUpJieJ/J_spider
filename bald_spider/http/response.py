@@ -30,6 +30,7 @@ class Response:
         self.request = request
         self.body = body
         self._text_cache = None
+        self._json_cache = None
         self._selector = None
 
     @property
@@ -64,7 +65,10 @@ class Response:
         return self._selector.xpath(xpath_string)
 
     def json(self):
-        return ujson.loads(self.text)
+        if self._json_cache is not None:
+            return self._json_cache
+        self._json_cache = ujson.loads(self.text)
+        return self._json_cache
 
     def urljoin(self, url):
         return _urljoin(self.url, url)

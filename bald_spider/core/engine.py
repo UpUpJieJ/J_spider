@@ -104,7 +104,6 @@ class Engine:
             await self.close_spider()
 
     async def _crawl(self, request):
-        # todo 实现并发
         async def crawl_task():
             outputs = await self._fetch(request)
             # 处理outputs
@@ -117,7 +116,6 @@ class Engine:
     # 获取下载请求 就可以实现并发
     async def _fetch(self, request):
         # 把结果回调回spider看是否还是个请求
-        # todo 失败的处理
         async def _success(_response):
             callback: Callable = request.callback or self.spider.parse
             # print(type(callback(_response))) 可能是生成器 异步生成器 也可能是普通函数NoneType
@@ -125,7 +123,7 @@ class Engine:
                 if iscoroutine(_outputs):
                     await _outputs
                 else:
-                    return transform(_outputs)
+                    return transform(_outputs, _response)
 
         _response = await self.downloader.fetch(request)
         if _response is None:
@@ -138,7 +136,6 @@ class Engine:
         await self._schedule_request(request)
 
     async def _schedule_request(self, request):
-        # todo 去重
         if await self.scheduler.enqueue_requests(request):
             _ = asyncio.create_task(
                 self.crawler.subscriber.notify(request_scheduled, request, self.crawler.spider))

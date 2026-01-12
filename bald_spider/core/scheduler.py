@@ -8,16 +8,18 @@ from bald_spider.utils.log import get_logger
 from typing import Optional, Callable
 
 from bald_spider.utils.project import load_class, common_call
+from bald_spider.utils.request import set_request
 
 
 class Scheduler:
 
-    def __init__(self, crawler, dupe_filter, stats, log_level):
+    def __init__(self, crawler, dupe_filter, stats, log_level, priority):
         self.crawler = crawler
         self.request_queue: Optional[SpiderPriorityQueue] = None
         self.logger = get_logger(self.__class__.__name__, log_level=log_level)
         self.dupe_filter = dupe_filter
         self._stats = stats
+        self.priority = priority
 
     @classmethod
     def create_instance(cls, crawler):
@@ -27,6 +29,7 @@ class Scheduler:
             dupe_filter=filter_cls.create_instance(crawler),
             stats=crawler.stats,
             log_level=crawler.settings.get('LOG_LEVEL'),
+            priority=crawler.settings.getint('DEPTH_PRIORITY'),
         )
         return o
 
@@ -47,6 +50,7 @@ class Scheduler:
         ):
             self.dupe_filter.log_stats(request)
             return False
+        set_request(request, self.priority)
         await self.request_queue.put(request)
         return True
 

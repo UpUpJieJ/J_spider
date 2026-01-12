@@ -25,7 +25,7 @@ class Request:
         self.callback = callback
         self.params = params
         self.cookies = cookies
-        self.priority = priority
+        self.priority = -priority
         self.proxy = proxy
         self.body = body
         self.encoding = encoding

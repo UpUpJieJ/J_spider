@@ -48,13 +48,15 @@ class Retry:
             ignore_http_codes: List,
             max_retry_times: int,
             retry_exceptions: List,
-            stats: StatsCollector
+            stats: StatsCollector,
+            retry_priority: int
     ):
         self.retry_http_codes = retry_http_codes
         self.ignore_http_codes = ignore_http_codes
         self.max_retry_times = max_retry_times
         self.retry_exceptions = tuple(retry_exceptions+_retry_exceptions)
         self.stats = stats
+        self.retry_priority = retry_priority
         self.logger = get_logger(self.__class__.__name__)
 
     @classmethod
@@ -64,7 +66,8 @@ class Retry:
             ignore_http_codes=crawler.settings.getlist('IGNORE_HTTP_CODES'),
             max_retry_times=crawler.settings.getint('MAX_RETRY_TIMES'),
             retry_exceptions=crawler.settings.getlist('RETRY_EXCEPTIONS'),
-            stats=crawler.stats
+            stats=crawler.stats,
+            retry_priority=crawler.settings.getint('RETRY_PRIORITY')
         )
         return o
 
@@ -84,7 +87,6 @@ class Retry:
             return self._retry(request, type(exception).__name__, spider)
 
     def _retry(self, request, reason, spider):
-        # todo 请求的优先级问题
         retry_times = request.meta.get('retry_times', 0)
         if retry_times < self.max_retry_times:
             retry_times += 1
@@ -92,6 +94,7 @@ class Retry:
                 f'Retrying {spider} {request} {reason}(failed {retry_times} times)')
             request.meta['retry_times'] = retry_times
             request.dont_filter = True
+            request.priority = request.priority+self.retry_priority
             self.stats.inc_value('retry/count')
             return request
         else:
