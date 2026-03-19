@@ -1,0 +1,25 @@
+# Web Framework
+fastapi>=0.100.0
+uvicorn[standard]>=0.23.0
+
+# Data Validation
+pydantic>=2.0.0
+
+# HTTP Clients
+aiohttp>=3.8.0
+httpx>=0.24.0
+requests>=2.28.0
+httpcore>=0.17.0
+
+# Async Libraries
+redis>=4.5.0
+motor>=3.3.0
+anyio>=4.0.0
+
+# Data Processing
+ujson>=5.8.0
+parsel>=1.8.0
+w3lib>=2.1.0
+
+# Type Extensions
+typing_extensions>=4.7.0

@@ -29,7 +29,7 @@ class BaiduSpider(Spider):
     # 重写基类的回调函数 使之可以处理多次请求
     async def parse(self, response):
         # print('>>>>>', response)
-        for i in range(4):
+        for i in range(3):
             # url = "https://www.httpbin.org/404"
             url = "https://www.baidu.com"
             request = Request(url=url, callback=self.page_parse, dont_filter=True)
@@ -37,7 +37,7 @@ class BaiduSpider(Spider):
 
     def page_parse(self, response):
         # print('page_parse', response)
-        for i in range(2):
+        for i in range(3):
             url = "https://www.baidu.com"
             request = Request(url=url, callback=self.parse_detail, dont_filter=True)
             yield request

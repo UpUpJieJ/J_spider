@@ -206,8 +206,14 @@ if __name__ == "__main__":
 python -m pytest tests/
 
 # 运行特定示例
-python tests/baidu_spider/run.py
+python -m tests.baidu_spider.run
 ```
+
+## 本地开发
+
+如果你要在本地启动示例爬虫、FastAPI 后端和前端联调界面，建议直接看这份文档：
+
+- `docs/local_dev_guide.md`
 
 ## 项目结构
 
@@ -280,8 +286,7 @@ tests/
 
 ```bash
 # 运行百度爬虫示例
-cd tests/baidu_spider
-python run.py
+python -m tests.baidu_spider.run
 ```
 
 该示例演示了：

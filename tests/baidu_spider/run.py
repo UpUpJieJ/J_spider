@@ -12,7 +12,7 @@ from bald_spider.utils import system as _
 
 
 async def run():
-    settings = get_settings()
+    settings = get_settings("tests.baidu_spider.settings")
     process = CrawlProcess(settings)
     await process.crawl(BaiduSpider)
     # await process.crawl(BaiduSpider2)

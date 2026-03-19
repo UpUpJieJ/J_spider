@@ -206,8 +206,101 @@ if __name__ == "__main__":
 python -m pytest tests/
 
 # Run specific test
-python tests/baidu_spider/run.py
+python -m tests.baidu_spider.run
 ```
+
+## Config Spider GUI (FastAPI + Frontend)
+
+This repository also contains a small **configuration-based spider GUI** built on top of `bald_spider`, implemented as a **FastAPI backend + Vite (React + TypeScript) frontend**.
+
+### 1. Backend (FastAPI) - Config Spider API
+
+- Entry point: `backend/main.py`
+- Start the API server:
+
+```bash
+python -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+The main HTTP endpoints:
+
+- `GET /api/health` - basic health check
+- `POST /api/config-spider/test` - test a config and fetch a small sample of data
+- `POST /api/config-spider/run` - run the config spider and return all collected items
+- `GET /api/config-spider/export/csv` - export the latest run results as CSV
+
+The API reuses:
+
+- `config_spider_runtime.models.SpiderConfig` / `FieldConfig`
+- `config_spider_runtime.runner.run_config_spider_once`
+- `config_spider_runtime.storage.InMemoryResultStore`
+
+Architecture and sustainable development guide:
+
+- `docs/config_spider_sustainable_dev.md`
+
+### 2. Frontend (Vite + React + TS)
+
+The frontend lives under the `frontend/` directory and was bootstrapped with Vite.
+
+Install dependencies if needed:
+
+```bash
+cd frontend
+npm install
+```
+
+Run the dev server:
+
+```bash
+npm run dev
+```
+
+By default Vite runs at `http://localhost:5173`, and the backend is expected at `http://localhost:8000`.
+
+You can override the backend base URL by creating a `.env` file under `frontend/`:
+
+```env
+VITE_API_BASE_URL=http://127.0.0.1:8000/api
+```
+
+### 3. Using the Config GUI
+
+1. Start FastAPI:
+
+```bash
+python -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+2. Start the frontend:
+
+```bash
+cd frontend
+npm run dev
+```
+
+3. Open `http://localhost:5173` in the browser and configure:
+
+- Spider name (`target_name`)
+- Start URLs
+- Selector type (`css` or `xpath`)
+- List selector
+- Detail URL selector, if needed
+- Next page selector, if needed
+- Fields and attributes
+- Concurrency, download delay, and optional max items
+
+4. Run:
+
+- Click `Test` first to validate selectors and preview sample rows.
+- Click `Run` to execute the full config spider and inspect results in the right-hand panel.
+- Click `Export CSV` to download the latest run results from the FastAPI backend.
+
+## Local Development
+
+For a direct, ready-to-run local workflow covering the example spider, FastAPI backend, and Vite frontend, see:
+
+- `docs/local_dev_guide.md`
 
 ## Project Structure
 
@@ -273,3 +366,4 @@ For issues and questions:
 - Create an issue on GitHub
 - Check the examples in the `tests/` directory
 - Review the source code documentation
+
