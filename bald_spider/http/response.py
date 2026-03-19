@@ -19,14 +19,13 @@ class Response:
             request: Request,
             status_code: int = 200,
             cookies: Dict,
-            encoding: str = "utf-8",
             body: bytes = b"",
     ):
         self.url = url
         self.status_code = status_code
         self.headers = headers
         self.cookies = cookies
-        self.encoding = encoding
+        self.encoding = request.encoding
         self.request = request
         self.body = body
         self._text_cache = None
@@ -59,10 +58,17 @@ class Response:
         self._text_cache = text
         return text
 
-    def xpath(self, xpath_string):
+    @property
+    def selector(self) -> Selector:
         if self._selector is None:
             self._selector = Selector(self.text)
-        return self._selector.xpath(xpath_string)
+        return self._selector
+
+    def xpath(self, xpath_string):
+        return self.selector.xpath(xpath_string)
+
+    def css(self, css_string):
+        return self.selector.css(css_string)
 
     def json(self):
         if self._json_cache is not None:

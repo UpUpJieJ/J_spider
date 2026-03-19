@@ -79,12 +79,13 @@ class Crawler:
 
 class CrawlProcess:
 
-    def __init__(self, settings=None):
+    def __init__(self, settings=None, handle_sigint: bool = True):
         self.crawlers: Final[Set] = set()
         self._active: Final[Set] = set()
         self.settings: SettingsManager = settings
 
-        signal.signal(signal.SIGINT, self._shutdown)
+        if handle_sigint:
+            signal.signal(signal.SIGINT, self._shutdown)
 
     async def crawl(self, spider: Type[Spider]):
         # 通过这个spider创建crawler

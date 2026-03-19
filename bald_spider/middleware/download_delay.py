@@ -13,7 +13,7 @@ class DownloadDelay:
         self.delay = settings.getfloat('DOWNLOAD_DELAY')
         if not self.delay:
             raise NotConfigured
-        self.randomness = settings.getbool('DOWNLOAD_DELAY')
+        self.randomness = settings.getbool('RANDOMNESS')
         self.floor, self.upper = settings.getlist('RANDOM_RANGE')
         self.logger = get_logger(self.__class__.__name__, log_level)
 

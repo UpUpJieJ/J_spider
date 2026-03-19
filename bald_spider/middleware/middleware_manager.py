@@ -37,7 +37,7 @@ class MiddlewareManager:
             if isinstance(result, (Request, Response)):
                 return result
             raise InvalidOutputError(
-                f'{result.__qualname__} must return None, Request or Response, but got {type(result).__name__}.')
+                f'{method.__qualname__} must return None, Request or Response, but got {type(result).__name__}.')
         return await self.download_method(request)
 
     async def _process_response(self, request: Request, response: Response):
@@ -54,7 +54,7 @@ class MiddlewareManager:
                 if isinstance(response, Response):
                     continue
                 raise InvalidOutputError(
-                    f'{response.__qualname__} must return Request or Response, but got {type(response).__name__}.')
+                    f'{method.__qualname__} must return Request or Response, but got {type(response).__name__}.')
         return response
 
     async def _process_exception(self, request: Request, exception: Exception):

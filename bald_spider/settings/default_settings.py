@@ -6,6 +6,8 @@ default config
 """
 VERSION = 1.0
 
+PROJECT_NAME = "bald_spider"
+
 CONCURRENCY = 16
 
 LOG_LEVEL = 'INFO'
@@ -16,7 +18,7 @@ VERIFY_SSL = True
 
 REQUEST_TIMEOUT = 60
 
-USE_SESSION = True
+USE_SESSION = False
 
 DOWNLOADER = 'bald_spider.core.downloader.aiohttp_downloader.AioDownloader'
 
@@ -36,7 +38,7 @@ RETRY_PRIORITY = 1
 
 # filter
 # FILTER_DEBUG = True
-# FILTER_CLS = 'bald_spider.duplicate_filter.memory_filter.MemoryFilter'
+FILTER_CLS = 'bald_spider.duplicate_filter.memory_filter.MemoryFilter'
 # FILTER_CLS = 'bald_spider.duplicate_filter.redis_filter.RedisFilter'
 # FILTER_CLS = 'bald_spider.duplicate_filter.aioredis_filter.AioRedisFilter'
 
